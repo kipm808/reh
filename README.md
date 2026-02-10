@@ -52,6 +52,7 @@ drag the left and right loop markers to set or adjust looping
 ```
 
 - Keyboard Shortcuts:
+
 | Key | Function | 
 | :--- | :----: |
 | Space | play/pause |
