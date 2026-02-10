@@ -6,7 +6,7 @@ reh (rehearse) is an mp3 player tailored for musicians to learn or transcribe re
 
 ## Features
 
-- Self contained rust project
+- Single file rust project
 - MIT License
     
 ## How to install on Ubuntu 24.04
@@ -32,29 +32,10 @@ cargo run --release
 | ringbuf | thread-safe audio buffering |
 
 - Supported Containers;
-| Name | Suffix | 
-| :--- | :----: |
-| Wave | .wav |
-| OGG | .ogg |
-| WebM | .webm |
-| MKV | .mkv |
-| MP4 | .mp4 |
-| ISO | .m4a |
-| AIFF | .aiff |
-| CAF | .caf |
+.wav .ogg .webm .mkv .mp4 .m4a .aiff .caf 
 
 - Supported Codecs:
-| Codec | Uses | 
-| :--- | :----: |
-| MP3 | Standard music files (MP1, MP2, MP3) |
-| AAC-LC | Tunes, YouTube, modern web audio |
-| Vorbis | Spotify, game audio (inside OGG) |
-| Opus | Discord, modern VoIP, high-efficiency web |
-| FLAC | Audiophile music, archiving |
-| ALAC | Apple Music, Lossless iTunes files |
-| PCM | Raw audio found in WAV and AIFF |
-| ADPCM | Legacy game audio, telephony |
-| WavPack | High-end compression |
+ MP3 AAC-LC Vorbis Opus FLAC ALAC PCM ADPCM WavPack 
 
 ## How to use
 
@@ -65,6 +46,9 @@ target/release/reh # select 'Open' for the file dialog
 or
 cp target/release/reh into a directory in your $PATH
 (if necessary, restart the shell to update the path cache)
+
+click or drag the waveform cursor to the desired audio file position
+drag the left and right loop markers to set or adjust looping
 ```
 
 - Keyboard Shortcuts:
