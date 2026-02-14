@@ -10,4 +10,5 @@ cpal = "0.15"
 symphonia = { version = "0.5", features = ["all"] }
 signalsmith-stretch = "0.1"
 ringbuf = "0.3" # For thread-safe audio buffering
+crossbeam-channel = "0.5.15"
 

@@ -56,8 +56,13 @@ drag the left and right loop markers to set or adjust looping
 | Key | Function | 
 | :--- | :----: |
 | Space | play/pause |
+| Qkey | quit |
+| Esc | quit |
+| Rkey | reset speed and pitch |
+| Ckey | clear loop |
 | OpenBracket | loop start |
 | CloseBracket | loop end |
+| Ctl-Drag loop markers | drag loop region |
 | Num0 | rewind to 0 |
 | Num1 | rewind 1 second |
 | Num2 | rewind 2 seconds |
@@ -70,4 +75,6 @@ drag the left and right loop markers to set or adjust looping
 | Num9 | rewind 9 seconds |
 | ArrowLeft | forward 5 seconds |
 | ArrowRight | back 5 seconds |
+| Ctl-ArrowLeft | seek loop region left |
+| Ctl-ArrowRight | seek loop retion right |
 
