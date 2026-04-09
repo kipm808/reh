@@ -10,5 +10,5 @@ cpal = "0.15"
 symphonia = { version = "0.5", features = ["all"] }
 signalsmith-stretch = "0.1"
 crossbeam-channel = "0.5.15"
-aubio-rs = "0.2.0"
+aubio = { version = "0.2.1", features = ["bindgen"] }
 

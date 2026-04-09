@@ -31,16 +31,26 @@ jobs:
             artifact_name: audio_player
             asset_name: audio_player_macos
 
-    steps:
+     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
 
       - name: Install System Dependencies (Linux)
         if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get update && sudo apt-get install -y libasound2-dev libudev-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libasound2-dev libudev-dev libaubio-dev clang
+
+      - name: Install System Dependencies (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install aubio llvm
 
       - name: Build Release
         run: cargo build --release --verbose
+        env:
+          # This helps bindgen find Clang on some runners
+          LIBCLANG_PATH: ${{ matrix.os == 'ubuntu-latest' && '/usr/lib/llvm-14/lib' || '' }}
 
       - name: Upload Binaries to Actions
         uses: actions/upload-artifact@v4
