@@ -50,16 +50,18 @@ jobs:
         env:
           LIBCLANG_PATH: ${{ matrix.os == 'ubuntu-latest' && '/usr/lib/llvm-14/lib' || '' }}
 
-      - name: Prepare Binary for Upload
+      - name: Prepare Binary
         shell: bash
         run: |
           mv target/release/${{ matrix.artifact_name }} target/release/${{ matrix.final_name }}
 
-      - name: Upload Binaries
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
+          # This name MUST be unique per matrix run in v4
           name: ${{ matrix.final_name }}
           path: target/release/${{ matrix.final_name }}
+          retention-days: 1
 
   release:
     name: Create GitHub Release
@@ -67,15 +69,23 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Download all artifacts
+      - name: Download all
         uses: actions/download-artifact@v4
         with:
-          path: all_assets
+          # This puts all 3 uploaded artifacts into a folder called 'release_assets'
+          path: release_assets
           merge-multiple: true
+
+      - name: List Files (Debug)
+        run: ls -R release_assets/
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: all_assets/*
+          # We now point to the EXACT files in the flat directory
+          files: |
+            release_assets/reh_linux
+            release_assets/reh_windows.exe
+            release_assets/reh_macos
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
