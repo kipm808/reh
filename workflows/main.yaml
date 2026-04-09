@@ -50,21 +50,31 @@ jobs:
       - name: Build Release
         run: cargo build --release --verbose
         env:
+          # Use a broader check for Clang on Linux
           LIBCLANG_PATH: ${{ matrix.os == 'ubuntu-latest' && '/usr/lib/llvm-14/lib' || '' }}
 
       - name: Prepare Binary
         shell: bash
         run: |
-          # Rename 'reh' to 'reh_linux', etc. so upload can find it
-          mv target/release/${{ matrix.artifact_name }} target/release/${{ matrix.final_name }}
+          # Create a staging area to avoid path confusion
+          mkdir -p staging
+          
+          # Fix 1: Robust existence check and copy
+          if [ -f "target/release/${{ matrix.artifact_name }}" ]; then
+            cp "target/release/${{ matrix.artifact_name }}" "staging/${{ matrix.final_name }}"
+            echo "Successfully staged ${{ matrix.final_name }}"
+          else
+            echo "Error: target/release/${{ matrix.artifact_name }} was not found!"
+            ls -R target/release/
+            exit 1
+          fi
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          # This name is for the internal GitHub Action storage
+          # Fix 2: Point directly to the staging folder
           name: ${{ matrix.final_name }}
-          # This path now points to the renamed file
-          path: target/release/${{ matrix.final_name }}
+          path: staging/${{ matrix.final_name }}
           if-no-files-found: error
           retention-days: 1
 
@@ -83,7 +93,6 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          # This grabs every file we downloaded into the folder
           files: release_assets/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
