@@ -3,7 +3,7 @@ name: Build and Release
 on:
   push:
     branches: [ "main" ]
-    tags: [ "v*" ] # Triggers release logic on tags like v1.0.1
+    tags: [ "v*" ]
   pull_request:
     branches: [ "main" ]
 
@@ -11,7 +11,7 @@ env:
   CARGO_TERM_COLOR: always
 
 permissions:
-  contents: write  # Allows the action to create releases and upload assets
+  contents: write
 
 jobs:
   build:
@@ -22,49 +22,76 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
         include:
           - os: ubuntu-latest
-            artifact_name: audio_player_linux
-            asset_name: audio_player_linux
+            artifact_name: reh           # This is what Rust actually builds
+            final_name: reh              # This is the name for the Release
           - os: windows-latest
-            artifact_name: audio_player.exe
-            asset_name: audio_player_windows.exe
+            artifact_name: reh.exe       # Windows adds .exe automatically
+            final_name: reh.exe
           - os: macos-latest
-            artifact_name: audio_player
-            asset_name: audio_player_macos
-
+            artifact_name: reh
+            final_name: reh_macos
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install System Dependencies (Linux)
         if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get update && sudo apt-get install -y libasound2-dev libudev-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libasound2-dev libudev-dev libaubio-dev clang
+
+      - name: Install System Dependencies (macOS)
+        if: matrix.os == 'macos-latest'
+        run: brew install aubio llvm
 
       - name: Build Release
         run: cargo build --release --verbose
+        env:
+          # Use a broader check for Clang on Linux
+          LIBCLANG_PATH: ${{ matrix.os == 'ubuntu-latest' && '/usr/lib/llvm-14/lib' || '' }}
 
-      - name: Upload Binaries to Actions
+      - name: Prepare Binary
+        shell: bash
+        run: |
+          # Create a staging area to avoid path confusion
+          mkdir -p staging
+          
+          # Fix 1: Robust existence check and copy
+          if [ -f "target/release/${{ matrix.artifact_name }}" ]; then
+            cp "target/release/${{ matrix.artifact_name }}" "staging/${{ matrix.final_name }}"
+            echo "Successfully staged ${{ matrix.final_name }}"
+          else
+            echo "Error: target/release/${{ matrix.artifact_name }} was not found!"
+            ls -R target/release/
+            exit 1
+          fi
+
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.asset_name }}
-          path: target/release/${{ matrix.artifact_name }}
+          # Fix 2: Point directly to the staging folder
+          name: ${{ matrix.final_name }}
+          path: staging/${{ matrix.final_name }}
+          if-no-files-found: error
+          retention-days: 1
 
   release:
     name: Create GitHub Release
     if: startsWith(github.ref, 'refs/tags/')
     needs: build
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
+        with:
+          path: release_assets
+          merge-multiple: true
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            audio_player_windows.exe/reh.exe
-            audio_player_macos/reh_macos
-            audio_player_linux/reh
+          files: release_assets/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

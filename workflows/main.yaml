@@ -22,11 +22,11 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
         include:
           - os: ubuntu-latest
-            artifact_name: reh
-            final_name: reh_linux
+            artifact_name: reh           # This is what Rust actually builds
+            final_name: reh             # This is the name for the Release
           - os: windows-latest
-            artifact_name: reh.exe
-            final_name: reh_windows.exe
+            artifact_name: reh.exe       # Windows adds .exe automatically
+            final_name: reh.exe
           - os: macos-latest
             artifact_name: reh
             final_name: reh_macos
