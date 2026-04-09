@@ -1,4 +1,4 @@
-use aubio_rs::{OnsetMode, Tempo};
+use aubio::{OnsetMode, Tempo};
 
 fn detect_silence(pcm: &[f32], channels: usize, threshold: f32) -> usize {
     for (i, frame) in pcm.chunks_exact(channels).enumerate() {
