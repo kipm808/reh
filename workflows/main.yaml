@@ -59,7 +59,7 @@ jobs:
           name: ${{ matrix.asset_name }}
           path: target/release/${{ matrix.artifact_name }}
 
-  release:
+release:
     name: Create GitHub Release
     if: startsWith(github.ref, 'refs/tags/')
     needs: build
@@ -67,13 +67,17 @@ jobs:
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
+        with:
+          # This downloads every matrix artifact into its own subdirectory
+          path: artifacts 
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
+          # We use a wildcard to grab the files from the subdirectories
           files: |
-            reh_windows.exe/reh_windows.exe
-            reh_macos/reh_macos
-            reh_linux/reh_linux
+            artifacts/reh_windows.exe/reh.exe
+            artifacts/reh_macos/reh
+            artifacts/reh_linux/reh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
