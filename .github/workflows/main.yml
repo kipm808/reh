@@ -49,8 +49,9 @@ jobs:
       - name: Build Release
         run: cargo build --release --verbose
         env:
-          # Use a broader check for Clang on Linux
-          LIBCLANG_PATH: ${{ matrix.os == 'ubuntu-latest' && '/usr/lib/llvm-14/lib' || '' }}
+          LIBCLANG_PATH: >-
+            ${{ matrix.os == 'ubuntu-latest' && '/usr/lib/llvm-14/lib' ||
+                matrix.os == 'macos-latest' && '/opt/homebrew/opt/llvm/lib' || '' }}
 
       - name: Prepare Binary
         shell: bash
