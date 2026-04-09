@@ -519,6 +519,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "aubio-rs"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9189fd9d8af82083a442e8b73ce12e602a6719f7360cf53f0bb9cb9e8c8d5a87"
+dependencies = [
+ "aubio-sys",
+]
+
+[[package]]
+name = "aubio-sys"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "99ef2dfeaceccd0b8a6d72203409acc927d9eebc8180c5756099549c9f8f20a8"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3042,11 +3060,11 @@ checksum = "a96887878f22d7bad8a3b6dc5b7440e0ada9a245242924394987b21cf2210a4c"
 name = "reh"
 version = "1.1.0"
 dependencies = [
+ "aubio-rs",
  "cpal",
  "crossbeam-channel",
  "eframe",
  "rfd",
- "ringbuf",
  "signalsmith-stretch",
  "symphonia",
 ]
@@ -3078,15 +3096,6 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "windows-sys 0.48.0",
-]
-
-[[package]]
-name = "ringbuf"
-version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "79abed428d1fd2a128201cec72c5f6938e2da607c6f3745f769fabea399d950a"
-dependencies = [
- "crossbeam-utils",
 ]
 
 [[package]]
