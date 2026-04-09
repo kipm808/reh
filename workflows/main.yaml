@@ -55,13 +55,15 @@ jobs:
       - name: Prepare Binary
         shell: bash
         run: |
-          # Move from the cargo default name (reh) to the matrix final name
+          # Rename 'reh' to 'reh_linux', etc. so upload can find it
           mv target/release/${{ matrix.artifact_name }} target/release/${{ matrix.final_name }}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
+          # This name is for the internal GitHub Action storage
           name: ${{ matrix.final_name }}
+          # This path now points to the renamed file
           path: target/release/${{ matrix.final_name }}
           if-no-files-found: error
           retention-days: 1
@@ -78,15 +80,10 @@ jobs:
           path: release_assets
           merge-multiple: true
 
-      - name: Check files
-        run: ls -R release_assets/
-
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            release_assets/reh_linux
-            release_assets/reh_windows.exe
-            release_assets/reh_macos
+          # This grabs every file we downloaded into the folder
+          files: release_assets/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
