@@ -33,7 +33,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install System Dependencies (Linux)
         if: matrix.os == 'ubuntu-latest'
@@ -53,14 +55,15 @@ jobs:
       - name: Prepare Binary
         shell: bash
         run: |
+          # Move from the cargo default name (reh) to the matrix final name
           mv target/release/${{ matrix.artifact_name }} target/release/${{ matrix.final_name }}
 
-      - name: Upload
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          # This name MUST be unique per matrix run in v4
           name: ${{ matrix.final_name }}
           path: target/release/${{ matrix.final_name }}
+          if-no-files-found: error
           retention-days: 1
 
   release:
@@ -69,20 +72,18 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Download all
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          # This puts all 3 uploaded artifacts into a folder called 'release_assets'
           path: release_assets
           merge-multiple: true
 
-      - name: List Files (Debug)
+      - name: Check files
         run: ls -R release_assets/
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          # We now point to the EXACT files in the flat directory
           files: |
             release_assets/reh_linux
             release_assets/reh_windows.exe
