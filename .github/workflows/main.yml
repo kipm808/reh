@@ -51,7 +51,8 @@ jobs:
         env:
           LIBCLANG_PATH: >-
             ${{ matrix.os == 'ubuntu-latest' && '/usr/lib/llvm-14/lib' ||
-                matrix.os == 'macos-latest' && '/opt/homebrew/opt/llvm/lib' || '' }}
+                matrix.os == 'macos-latest' && '/opt/homebrew/opt/llvm/lib' ||
+                'C:\Program Files\LLVM\bin' }}
 
       - name: Prepare Binary
         shell: bash
