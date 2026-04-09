@@ -22,14 +22,15 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
         include:
           - os: ubuntu-latest
-            artifact_name: reh           # This is what Rust actually builds
-            final_name: reh              # This is the name for the Release
+            artifact_name: reh
+            final_name: reh_linux
           - os: windows-latest
-            artifact_name: reh.exe       # Windows adds .exe automatically
-            final_name: reh.exe
+            artifact_name: reh.exe
+            final_name: reh_windows.exe
           - os: macos-latest
             artifact_name: reh
             final_name: reh_macos
+
     steps:
       - uses: actions/checkout@v4
 
@@ -40,7 +41,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libasound2-dev libudev-dev libaubio-dev clang
+          sudo apt-get install -y libasound2-dev libudev-dev libaubio-dev clang llvm-dev
 
       - name: Install System Dependencies (macOS)
         if: matrix.os == 'macos-latest'
@@ -50,35 +51,31 @@ jobs:
         shell: bash
         run: |
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-            export LIBCLANG_PATH=$(llvm-config --libdir)
+            # Try to find the path dynamically, fallback to common version path
+            export LIBCLANG_PATH=$(llvm-config --libdir || echo "/usr/lib/llvm-14/lib")
+          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+            export LIBCLANG_PATH="/opt/homebrew/opt/llvm/lib"
+          elif [ "${{ matrix.os }}" = "windows-latest" ]; then
+            export LIBCLANG_PATH="C:\Program Files\LLVM\bin"
           fi
+          
+          echo "Setting LIBCLANG_PATH to: $LIBCLANG_PATH"
           cargo build --release --verbose
-        env:
-          LIBCLANG_PATH: >-
-            ${{ matrix.os == 'macos-latest' && '/opt/homebrew/opt/llvm/lib' ||
-                matrix.os == 'windows-latest' && 'C:\Program Files\LLVM\bin' ||
-                '/usr/lib/llvm-14/lib' }}
 
       - name: Prepare Binary
         shell: bash
         run: |
-          # Create a staging area to avoid path confusion
           mkdir -p staging
-          
-          # Fix 1: Robust existence check and copy
           if [ -f "target/release/${{ matrix.artifact_name }}" ]; then
             cp "target/release/${{ matrix.artifact_name }}" "staging/${{ matrix.final_name }}"
-            echo "Successfully staged ${{ matrix.final_name }}"
           else
-            echo "Error: target/release/${{ matrix.artifact_name }} was not found!"
-            ls -R target/release/
+            echo "Error: Binary not found at target/release/${{ matrix.artifact_name }}"
             exit 1
           fi
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          # Fix 2: Point directly to the staging folder
           name: ${{ matrix.final_name }}
           path: staging/${{ matrix.final_name }}
           if-no-files-found: error
