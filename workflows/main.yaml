@@ -3,7 +3,7 @@ name: Build and Release
 on:
   push:
     branches: [ "main" ]
-    tags: [ "v*" ] # Triggers release logic on tags like v1.0.1
+    tags: [ "v*" ]
   pull_request:
     branches: [ "main" ]
 
@@ -11,7 +11,7 @@ env:
   CARGO_TERM_COLOR: always
 
 permissions:
-  contents: write  # Allows the action to create releases and upload assets
+  contents: write
 
 jobs:
   build:
@@ -22,18 +22,20 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
         include:
           - os: ubuntu-latest
-            artifact_name: audio_player_linux
-            asset_name: audio_player_linux
+            artifact_name: reh
+            asset_name: reh_linux
           - os: windows-latest
-            artifact_name: audio_player.exe
-            asset_name: audio_player_windows.exe
+            artifact_name: reh.exe
+            asset_name: reh_windows.exe
           - os: macos-latest
-            artifact_name: audio_player
-            asset_name: audio_player_macos
+            artifact_name: reh
+            asset_name: reh_macos
 
-     steps:
+    steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install System Dependencies (Linux)
         if: matrix.os == 'ubuntu-latest'
@@ -43,13 +45,12 @@ jobs:
 
       - name: Install System Dependencies (macOS)
         if: matrix.os == 'macos-latest'
-        run: |
-          brew install aubio llvm
+        run: brew install aubio llvm
 
       - name: Build Release
         run: cargo build --release --verbose
         env:
-          # This helps bindgen find Clang on some runners
+          # Helps bindgen find clang on Linux runners
           LIBCLANG_PATH: ${{ matrix.os == 'ubuntu-latest' && '/usr/lib/llvm-14/lib' || '' }}
 
       - name: Upload Binaries to Actions
@@ -63,8 +64,6 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     needs: build
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -73,8 +72,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            audio_player_windows.exe/reh.exe
-            audio_player_macos/reh_macos
-            audio_player_linux/reh
+            reh_windows.exe/reh_windows.exe
+            reh_macos/reh_macos
+            reh_linux/reh_linux
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
