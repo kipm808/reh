@@ -23,13 +23,13 @@ jobs:
         include:
           - os: ubuntu-latest
             artifact_name: reh
-            asset_name: reh_linux
+            final_name: reh_linux
           - os: windows-latest
             artifact_name: reh.exe
-            asset_name: reh_windows.exe
+            final_name: reh_windows.exe
           - os: macos-latest
             artifact_name: reh
-            asset_name: reh_macos
+            final_name: reh_macos
 
     steps:
       - uses: actions/checkout@v4
@@ -50,13 +50,16 @@ jobs:
         env:
           LIBCLANG_PATH: ${{ matrix.os == 'ubuntu-latest' && '/usr/lib/llvm-14/lib' || '' }}
 
+      - name: Prepare Binary for Upload
+        shell: bash
+        run: |
+          mv target/release/${{ matrix.artifact_name }} target/release/${{ matrix.final_name }}
+
       - name: Upload Binaries
         uses: actions/upload-artifact@v4
         with:
-          # We name the artifact the same as the asset name for clarity
-          name: ${{ matrix.asset_name }}
-          path: target/release/${{ matrix.artifact_name }}
-          if-no-files-found: error
+          name: ${{ matrix.final_name }}
+          path: target/release/${{ matrix.final_name }}
 
   release:
     name: Create GitHub Release
@@ -67,19 +70,12 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          # This pulls all artifacts from the previous job into an 'assets' folder
-          path: assets
-
-      - name: Display structure of downloaded files
-        run: ls -R assets/
+          path: all_assets
+          merge-multiple: true
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          # V4 of download-artifact creates a subfolder for each artifact name
-          files: |
-            assets/reh_windows.exe/reh.exe
-            assets/reh_macos/reh
-            assets/reh_linux/reh
+          files: all_assets/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
