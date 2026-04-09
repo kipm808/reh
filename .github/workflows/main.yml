@@ -47,12 +47,16 @@ jobs:
         run: brew install aubio llvm
 
       - name: Build Release
-        run: cargo build --release --verbose
+        run: |
+          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+            export LIBCLANG_PATH=$(llvm-config --libdir)
+          fi
+          cargo build --release --verbose
         env:
           LIBCLANG_PATH: >-
-            ${{ matrix.os == 'ubuntu-latest' && '/usr/lib/llvm-14/lib' ||
-                matrix.os == 'macos-latest' && '/opt/homebrew/opt/llvm/lib' ||
-                'C:\Program Files\LLVM\bin' }}
+            ${{ matrix.os == 'macos-latest' && '/opt/homebrew/opt/llvm/lib' ||
+                matrix.os == 'windows-latest' && 'C:\Program Files\LLVM\bin' ||
+                '/usr/lib/llvm-14/lib' }}
 
       - name: Prepare Binary
         shell: bash
