@@ -1,6 +1,13 @@
+[![Latest Release](https://img.shields.io/github/v/release/kipm808/reh)](https://github.com/kipm808/reh/releases/latest)
+
 # Reh
 
 reh (rehearse) is an mp3 player tailored for musicians to learn or transcribe recorded music.
+
+## Pre-compiled Binaries
+
+- Click on the release badge above or the Releases section in the right panel.
+- chmod +x reh_linux
 
 ![reh screen shot](/assets/reh.png)
 
