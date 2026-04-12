@@ -22,12 +22,15 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
         include:
           - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
             artifact_name: reh
             final_name: reh_linux
           - os: windows-latest
+            target: x86_64-pc-windows-msvc
             artifact_name: reh.exe
             final_name: reh_windows.exe
           - os: macos-latest
+            target: x86_64-apple-darwin
             artifact_name: reh
             final_name: reh_macos
 
@@ -36,40 +39,31 @@ jobs:
 
       - name: Install Rust Toolchain
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
 
-      - name: Install System Dependencies (Linux)
+      - name: Install MUSL Tools (Linux)
         if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libasound2-dev libudev-dev libaubio-dev clang llvm-dev
-
-      - name: Install System Dependencies (macOS)
-        if: matrix.os == 'macos-latest'
-        run: brew install aubio llvm
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
 
       - name: Build Release
         shell: bash
         run: |
-          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-            # Try to find the path dynamically, fallback to common version path
-            export LIBCLANG_PATH=$(llvm-config --libdir || echo "/usr/lib/llvm-14/lib")
-          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
-            export LIBCLANG_PATH="/opt/homebrew/opt/llvm/lib"
-          elif [ "${{ matrix.os }}" = "windows-latest" ]; then
-            export LIBCLANG_PATH="C:\Program Files\LLVM\bin"
-          fi
-          
-          echo "Setting LIBCLANG_PATH to: $LIBCLANG_PATH"
-          cargo build --release --verbose
+          # Use the specific target for static linking on Linux
+          cargo build --release --target ${{ matrix.target }} --verbose
 
-      - name: Prepare Binary
+      - name: Prepare Binary and Set Permissions
         shell: bash
         run: |
           mkdir -p staging
-          if [ -f "target/release/${{ matrix.artifact_name }}" ]; then
-            cp "target/release/${{ matrix.artifact_name }}" "staging/${{ matrix.final_name }}"
+          # Path includes the target triple when using --target
+          SOURCE_PATH="target/${{ matrix.target }}/release/${{ matrix.artifact_name }}"
+          
+          if [ -f "$SOURCE_PATH" ]; then
+            cp "$SOURCE_PATH" "staging/${{ matrix.final_name }}"
+            chmod +x "staging/${{ matrix.final_name }}"
           else
-            echo "Error: Binary not found at target/release/${{ matrix.artifact_name }}"
+            echo "Error: Binary not found at $SOURCE_PATH"
             exit 1
           fi
 
@@ -92,6 +86,9 @@ jobs:
         with:
           path: release_assets
           merge-multiple: true
+
+      - name: Ensure Executable Bit for Release
+        run: chmod +x release_assets/*
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
