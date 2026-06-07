@@ -348,9 +348,24 @@ impl eframe::App for PlayerApp {
 
         let mut trigger_index: Option<usize> = None;
 
-        // --- Nudge Keys: Keypad 1 and 3 ---
-        let nudge_left = ctx.input(|i| i.key_pressed(egui::Key::Num1));
-        let nudge_right = ctx.input(|i| i.key_pressed(egui::Key::Num3));
+        // --- Nudge Keys: Keypad 1 and 3 (with and without NumLock) ---
+        let mut nudge_left = ctx.input(|i| i.key_pressed(egui::Key::Num1) || i.key_pressed(egui::Key::End));
+        let mut nudge_right = ctx.input(|i| i.key_pressed(egui::Key::Num3) || i.key_pressed(egui::Key::PageDown));
+
+        // Also check text events for keypad with NumLock on
+        ctx.input(|i| {
+            for event in &i.events {
+                if let egui::Event::Text(t) = event {
+                    if let Some(digit) = t.chars().next().and_then(|c| c.to_digit(10)) {
+                        if digit == 1 {
+                            nudge_left = true;
+                        } else if digit == 3 {
+                            nudge_right = true;
+                        }
+                    }
+                }
+            }
+        });
 
         if nudge_left || nudge_right {
             let mut s = self.state.lock().unwrap();
@@ -370,20 +385,21 @@ impl eframe::App for PlayerApp {
             }
         }
 
-        let num_keys = [egui::Key::Num0];
-        for key in num_keys.iter() {
-            if ctx.input(|inp| inp.key_pressed(*key)) {
-                trigger_index = Some(0);
-            }
+        // Handle number row 0 and keypad 0 for rewind (with and without NumLock)
+        // Keypad 0 with NumLock off sends Insert key
+        if ctx.input(|i| i.key_pressed(egui::Key::Num0) || i.key_pressed(egui::Key::Insert)) {
+            trigger_index = Some(0);
         }
 
+        // Also check text events for '0' (keypad with NumLock on)
         ctx.input(|i| {
             for event in &i.events {
-                if let egui::Event::Text(t) = event
-                    && let Some(digit) = t.chars().next().and_then(|c| c.to_digit(10))
-                    && digit == 0
-                {
-                    trigger_index = Some(0);
+                if let egui::Event::Text(t) = event {
+                    if let Some(digit) = t.chars().next().and_then(|c| c.to_digit(10)) {
+                        if digit == 0 {
+                            trigger_index = Some(0);
+                        }
+                    }
                 }
             }
         });

@@ -6,8 +6,29 @@ reh (rehearse) is an mp3 player tailored for musicians to learn or transcribe re
 
 ## Pre-compiled Binaries
 
-- Click on the release badge above or the Releases section in the right panel.
-- chmod +x reh_linux
+1. Click on the release badge above or the Releases section in the right panel to access the latest release.
+2. Download the appropriate binary for your platform:
+   - **Windows**: `reh_windows.exe`
+   - **Linux**: `reh_linux`
+   - **Mac**: `reh_mac`
+
+### Linux Setup
+```bash
+chmod +x reh_linux
+./reh_linux
+```
+
+### Mac Setup
+```bash
+chmod +x reh_mac
+# First run will require permission - right-click the file and select "Open"
+# Or use the command line to remove quarantine:
+xattr -d com.apple.quarantine reh_mac
+./reh_mac
+```
+
+### Windows Setup
+Simply double-click `reh_windows.exe` or run from command prompt.
 
 ![reh screen shot](/assets/reh.png)
 
@@ -65,11 +86,12 @@ cp target/release/reh into a directory in your $PATH
 
 ### Playback
 - **Space**: Toggle Play/Pause.
-- **0 (Number Row/Keypad)**: Reset playhead to start and begin playback.
+- **0 (Number Row)**: Reset playhead to start and begin playback.
+- **Keypad 0**: Reset playhead to start and begin playback (works with or without NumLock).
 - **R**: Reset Speed and Pitch to 1.0.
 - **Q / Escape**: Quit application.
 
-### Navigation & Looping (Standard)
+### Loop Markers
 - **Left Arrow**:
     - *If Looping*: Move the entire loop window back to the previous beat marker.
     - *If Not Looping*: Jump the cursor back two beat markers.
@@ -84,12 +106,8 @@ cp target/release/reh into a directory in your $PATH
 - **C**: Clear current loop (Reset to full track length).
 
 ### Beat Grid Adjustment
-- **Keypad 1**: Nudge all beat markers left (earlier).
-- **Keypad 3**: Nudge all beat markers right (later).
-
-### Loop Nudging (Command Modifier)
-- **Cmd + Left Arrow**: Shift the current loop window backward by exactly one bar.
-- **Cmd + Right Arrow**: Shift the current loop window forward by exactly one bar.
+- **Number Row 1 / Keypad 1**: Nudge all beat markers left (earlier). Keypad works with or without NumLock.
+- **Number Row 3 / Keypad 3**: Nudge all beat markers right (later). Keypad works with or without NumLock.
 
 ---
 
